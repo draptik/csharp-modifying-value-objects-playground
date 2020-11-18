@@ -64,10 +64,17 @@ namespace Demo
                 newAddress3.Street.Value.Should().Be("street");
                 newAddress3.Country.Value.Should().Be("countryChanged");
                 newAddress3.ZipCode.Value.Should().Be("zipcode");
+
+                // ensure that original address has not changed
+                address.City.Value.Should().Be("city");
+                address.Street.Value.Should().Be("street");
+                address.Country.Value.Should().Be("country");
+                address.ZipCode.Value.Should().Be("zipcode");
             }
         }
+        
         [Fact]
-        public void Change_Single_Prop_In_ValueObject_While_Copying_The_Rest_With_Single_Method_Missing_Impl_For_Dynamic()
+        public void Change_Single_Prop_In_ValueObject_While_Copying_The_Rest_Throws_When_Not_Implemented()
         {
             // Arrange
             var address = new Address(
@@ -77,10 +84,10 @@ namespace Demo
                 new ZipCode("zipcode"));
             
             // Act
-            var newAddress = address.Change(new ZipCode("zipcodeChanged"));
+            Action action = () => address.Change(new ZipCode("zipcodeChanged"));
             
             // Assert
-            newAddress.ZipCode.Value.Should().Be("zipcodeChanged");
+            action.Should().Throw<Exception>().WithMessage("ups");
         }
     }
 
@@ -113,13 +120,15 @@ namespace Demo
 
         private Address Apply(Country country) => new Address(City, Street, country, ZipCode);
         
-        private Address Apply(ValueObject _) => throw new NotImplementedException();
+        // Catch all
+        private Address Apply(ValueObject _) => throw new NotImplementedException("ups");
         
         protected override IEnumerable<object> GetEqualityComponents()
         {
             yield return City;
             yield return Street;
             yield return Country;
+            yield return ZipCode;
         }
     }
 
